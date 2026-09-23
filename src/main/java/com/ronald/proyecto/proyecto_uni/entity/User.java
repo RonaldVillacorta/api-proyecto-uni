@@ -84,6 +84,30 @@ public class User implements UserIsAdmin { // El userIsAdmin para los roles para
             "user_id", "role_id" }))
     List<Role> roles;
 
+    @Column(name = "limite_credito")
+    private Double limiteCredito = 500.0;
+
+    @Column(name = "sbs_calificacion")
+    private String sbsCalificacion;
+
+    @Column(name = "sbs_deuda_total")
+    private Double sbsDeudaTotal;
+
+    @Column(name = "sbs_entidades", length = 1000)
+    private String sbsEntidades;
+
+    @Column(name = "sbs_score")
+    private Integer sbsScore;
+
+    @Column(name = "sbs_semaforo")
+    private String sbsSemaforo;
+
+    @Column(name = "sbs_fecha_evaluacion")
+    private LocalDateTime sbsFechaEvaluacion;
+
+    @Column(name = "sbs_documento_url", length = 500)
+    private String sbsDocumentoUrl;
+
     public User() {
     }
 
@@ -209,6 +233,68 @@ public class User implements UserIsAdmin { // El userIsAdmin para los roles para
         this.estado = estado;
     }
 
-    
+    public Double getLimiteCredito() {
+        return limiteCredito;
+    }
+
+    public void setLimiteCredito(Double limiteCredito) {
+        this.limiteCredito = limiteCredito;
+    }
+
+    public String getSbsCalificacion() {
+        return sbsCalificacion;
+    }
+
+    public void setSbsCalificacion(String sbsCalificacion) {
+        this.sbsCalificacion = sbsCalificacion;
+    }
+
+    public Double getSbsDeudaTotal() {
+        return sbsDeudaTotal;
+    }
+
+    public void setSbsDeudaTotal(Double sbsDeudaTotal) {
+        this.sbsDeudaTotal = sbsDeudaTotal;
+    }
+
+    public String getSbsEntidades() {
+        return sbsEntidades;
+    }
+
+    public void setSbsEntidades(String sbsEntidades) {
+        this.sbsEntidades = sbsEntidades;
+    }
+
+    public Integer getSbsScore() {
+        return sbsScore;
+    }
+
+    public void setSbsScore(Integer sbsScore) {
+        this.sbsScore = sbsScore;
+    }
+
+    public String getSbsSemaforo() {
+        return sbsSemaforo;
+    }
+
+    public void setSbsSemaforo(String sbsSemaforo) {
+        this.sbsSemaforo = sbsSemaforo;
+    }
+
+    public LocalDateTime getSbsFechaEvaluacion() {
+        return sbsFechaEvaluacion;
+    }
+
+    public void setSbsFechaEvaluacion(LocalDateTime sbsFechaEvaluacion) {
+        this.sbsFechaEvaluacion = sbsFechaEvaluacion;
+    }
+
+    public String getSbsDocumentoUrl() {
+        return sbsDocumentoUrl;
+    }
+
+    public void setSbsDocumentoUrl(String sbsDocumentoUrl) {
+        this.sbsDocumentoUrl = sbsDocumentoUrl;
+    }
 
 }

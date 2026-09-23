@@ -55,4 +55,23 @@ public class CloudinaryService {
         Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
         return uploadResult;
     }
+
+    public Map<String, Object> subirDocumento(MultipartFile file, String subcarpeta) throws IOException {
+        if (cloudinary == null) {
+            log.info("Cloudinary inactivo: simulando guardado de documento {}", file.getOriginalFilename());
+            return Map.of(
+                    "secure_url", "https://via.placeholder.com/600x800.png?text=Documento+SBS+Subido",
+                    "public_id", "simulated_" + System.currentTimeMillis()
+            );
+        }
+
+        Map<String, Object> params = ObjectUtils.asMap(
+                "folder", "proyecto_uni/" + subcarpeta,
+                "resource_type", "auto"
+        );
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
+        return uploadResult;
+    }
 }
