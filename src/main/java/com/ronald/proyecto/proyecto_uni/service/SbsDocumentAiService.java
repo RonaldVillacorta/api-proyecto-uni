@@ -86,6 +86,10 @@ public class SbsDocumentAiService {
             Map<String, Object> uploadResult = cloudinaryService.subirDocumento(file, "reportes_sbs");
             if (uploadResult != null && uploadResult.containsKey("secure_url")) {
                 documentoUrl = uploadResult.get("secure_url").toString();
+                // Si es PDF, convertir la extensión en la URL a .jpg para visualización pública en Cloudinary sin error 401
+                if (documentoUrl.toLowerCase().endsWith(".pdf")) {
+                    documentoUrl = documentoUrl.replaceAll("(?i)\\.pdf$", ".jpg");
+                }
             }
         } catch (Exception e) {
             log.warn("No se pudo subir el archivo a Cloudinary (continuando análisis local): {}", e.getMessage());
@@ -104,7 +108,7 @@ public class SbsDocumentAiService {
         double pctPerdida = datosExtraidos.path("porcentaje_perdida").asDouble(0.0);
         double deudaTotal = datosExtraidos.path("deuda_total_financiera").asDouble(0.0);
         double diasAtraso = datosExtraidos.path("dias_atraso_estimados").asDouble(0.0);
-        String resumenEjecutivo = datosExtraidos.path("resumen_ejecutivo").asText("Evaluación de historial crediticio SBS procesada.");
+        String resumenEjecutivo = datosExtraidos.path("resumen_ejecutivo").asText("");
 
         List<String> entidades = new ArrayList<>();
         if (datosExtraidos.has("entidades_reportantes") && datosExtraidos.get("entidades_reportantes").isArray()) {
@@ -129,11 +133,17 @@ public class SbsDocumentAiService {
             } else {
                 calificacionResumen = "EN MORA CRÍTICA";
             }
+            resumenEjecutivo = String.format("Alerta de Riesgo: El titular registra calificación %s en el sistema financiero SBS (deuda consolidada de S/. %.2f en %s). Registra morosidad severa o atrasos críticos que ameritan el bloqueo preventivo del crédito.",
+                    calificacionResumen, deudaTotal, entidades.isEmpty() ? "entidades financieras" : String.join(", ", entidades));
         } else if (pctCpp > 0 || diasAtraso > 0 || pctNormal < 90.0) {
             semaforo = "AMARILLO";
             calificacionResumen = pctNormal > 0 ? "CPP / NORMAL" : "100% CPP";
+            resumenEjecutivo = String.format("Observación de Riesgo: El titular registra calificación %s con problemas potenciales en entidades financieras (deuda de S/. %.2f). Se aprueba cupo prudente supervisado.",
+                    calificacionResumen, deudaTotal);
         } else {
             calificacionResumen = "100% NORMAL";
+            resumenEjecutivo = String.format("Excelente récord crediticio: El titular registra calificación 100%% Normal ante la SBS con cumplimiento puntual (deuda consolidada de S/. %.2f).",
+                    deudaTotal);
         }
 
         // 5. Calibrar Score Crediticio y Límite de Fiado con el modelo de Machine Learning
