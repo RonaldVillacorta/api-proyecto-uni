@@ -85,6 +85,9 @@ public class UserServiceImpl implements UserService {
         userSave.setPhone(userRequest.getPhone());
         userSave.setAddress(userRequest.getAddress());
         userSave.setEmail(generatedEmail);
+        if (userRequest.getIngresoMensual() != null) {
+            userSave.setIngresoMensual(userRequest.getIngresoMensual());
+        }
 
         List<Role> roles = getRoles(userRequest);
         userSave.setRoles(roles);
@@ -113,6 +116,9 @@ public class UserServiceImpl implements UserService {
         userActualizado.setDni(userRequest.getDni());
         userActualizado.setPhone(userRequest.getPhone());
         userActualizado.setAddress(userRequest.getAddress());
+        if (userRequest.getIngresoMensual() != null) {
+            userActualizado.setIngresoMensual(userRequest.getIngresoMensual());
+        }
 
         List<Role> roles = getRoles(userRequest);
 

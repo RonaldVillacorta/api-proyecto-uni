@@ -29,6 +29,16 @@ public class UserRequest implements UserIsAdmin { // El userIsAdmin para los rol
 
     private boolean admin;
 
+    private Double ingresoMensual;
+
+    public Double getIngresoMensual() {
+        return ingresoMensual;
+    }
+
+    public void setIngresoMensual(Double ingresoMensual) {
+        this.ingresoMensual = ingresoMensual;
+    }
+
     public String getName() {
         return name;
     }

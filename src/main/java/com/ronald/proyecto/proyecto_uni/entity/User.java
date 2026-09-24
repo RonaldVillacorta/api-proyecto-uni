@@ -108,6 +108,9 @@ public class User implements UserIsAdmin { // El userIsAdmin para los roles para
     @Column(name = "sbs_documento_url", length = 500)
     private String sbsDocumentoUrl;
 
+    @Column(name = "ingreso_mensual")
+    private Double ingresoMensual;
+
     public User() {
     }
 
@@ -295,6 +298,14 @@ public class User implements UserIsAdmin { // El userIsAdmin para los roles para
 
     public void setSbsDocumentoUrl(String sbsDocumentoUrl) {
         this.sbsDocumentoUrl = sbsDocumentoUrl;
+    }
+
+    public Double getIngresoMensual() {
+        return ingresoMensual;
+    }
+
+    public void setIngresoMensual(Double ingresoMensual) {
+        this.ingresoMensual = ingresoMensual;
     }
 
 }

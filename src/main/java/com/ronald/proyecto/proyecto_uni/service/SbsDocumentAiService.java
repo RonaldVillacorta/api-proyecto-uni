@@ -334,7 +334,7 @@ public class SbsDocumentAiService {
             Map<String, Object> requestPayload = new HashMap<>();
             requestPayload.put("id", user.getId());
             requestPayload.put("nombre", user.getName() + " " + user.getLastname());
-            requestPayload.put("ingreso_mensual", 2500.0);
+            requestPayload.put("ingreso_mensual", user.getIngresoMensual() != null ? user.getIngresoMensual() : 2000.0);
             requestPayload.put("monto_deuda_actual", deudaTotal);
             requestPayload.put("dias_retraso_promedio", diasAtraso);
             requestPayload.put("cuotas_vencidas", (pctPerdida > 0 || pctDudoso > 0) ? 2 : (pctDeficiente > 0 ? 1 : 0));
