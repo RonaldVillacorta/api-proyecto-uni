@@ -116,12 +116,24 @@ public class SbsDocumentAiService {
             }
         }
 
-        // 4. Determinar Semáforo de Riesgo SBS
+        // 4. Determinar Semáforo de Riesgo SBS y consistencia de Calificación oficial
         String semaforo = "VERDE";
         if (pctPerdida > 0 || pctDudoso > 0 || pctDeficiente > 0 || diasAtraso > 30) {
             semaforo = "ROJO";
+            if (pctPerdida > 0) {
+                calificacionResumen = pctNormal > 0 ? "PÉRDIDA / NORMAL" : "100% PÉRDIDA";
+            } else if (pctDudoso > 0) {
+                calificacionResumen = pctNormal > 0 ? "DUDOSO / NORMAL" : "100% DUDOSO";
+            } else if (pctDeficiente > 0) {
+                calificacionResumen = pctNormal > 0 ? "DEFICIENTE / NORMAL" : "100% DEFICIENTE";
+            } else {
+                calificacionResumen = "EN MORA CRÍTICA";
+            }
         } else if (pctCpp > 0 || diasAtraso > 0 || pctNormal < 90.0) {
             semaforo = "AMARILLO";
+            calificacionResumen = pctNormal > 0 ? "CPP / NORMAL" : "100% CPP";
+        } else {
+            calificacionResumen = "100% NORMAL";
         }
 
         // 5. Calibrar Score Crediticio y Límite de Fiado con el modelo de Machine Learning
