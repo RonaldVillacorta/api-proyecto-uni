@@ -106,7 +106,20 @@ public class SbsDocumentAiService {
         double pctDeficiente = datosExtraidos.path("porcentaje_deficiente").asDouble(0.0);
         double pctDudoso = datosExtraidos.path("porcentaje_dudoso").asDouble(0.0);
         double pctPerdida = datosExtraidos.path("porcentaje_perdida").asDouble(0.0);
-        double deudaTotal = datosExtraidos.path("deuda_total_financiera").asDouble(0.0);
+        double deudaTotal = 0.0;
+        JsonNode dNode = datosExtraidos.path("deuda_total_financiera");
+        if (dNode.isNumber()) {
+            deudaTotal = dNode.asDouble(0.0);
+        } else if (dNode.isTextual()) {
+            try {
+                String clean = dNode.asText().replaceAll("[^0-9.]", "").trim();
+                deudaTotal = Double.parseDouble(clean);
+            } catch (Exception ignored) {}
+        }
+        // Salvaguarda: si el LLM uso punto para separar miles (ej: 2.909 en vez de 2909):
+        if (deudaTotal > 0 && deudaTotal < 20.0 && (deudaTotal % 1) != 0) {
+            deudaTotal = Math.round(deudaTotal * 1000.0);
+        }
         double diasAtraso = datosExtraidos.path("dias_atraso_estimados").asDouble(0.0);
         String resumenEjecutivo = datosExtraidos.path("resumen_ejecutivo").asText("");
 
@@ -147,7 +160,7 @@ public class SbsDocumentAiService {
         }
 
         // 5. Calibrar Score Crediticio y Límite de Fiado con el modelo de Machine Learning
-        EvaluacionCrediticiaMl evaluacionMl = calcularScoringMl(user, pctNormal, pctCpp, pctDeficiente, pctDudoso,
+        EvaluacionCrediticiaMl evaluacionMl = calcularScoringMl(user, semaforo, pctNormal, pctCpp, pctDeficiente, pctDudoso,
                 pctPerdida, deudaTotal, diasAtraso);
 
         // 6. Persistir en la entidad User
@@ -243,7 +256,7 @@ public class SbsDocumentAiService {
                    - Si dice 'Dudoso' -> porcentaje_dudoso > 0.
                    - Si dice 'Perdida' -> porcentaje_perdida > 0.
                 2. Si alguna entidad tiene Problemas Potenciales, Problemas de Pago, Deficiente, Dudoso o Perdida, BAJO NINGUNA CIRCUNSTANCIA califiques como '100% NORMAL'. La calificacion debe ser 'CPP / NORMAL', 'PROBLEMAS DE PAGO', 'DEFICIENTE' o 'MIXTA'.
-                3. Deuda total financiera: suma el monto TOTAL de todas las entidades (incluyendo capital e intereses, ej. S/. 2,909.00 o el total que figure en el cuadro/observaciones).
+                3. Deuda total financiera: suma el monto TOTAL de todas las entidades (capital + intereses, ej. 2909.00). OBLIGATORIO: Escribe el numero en Soles ENTEROS o con decimales reales, NUNCA uses punto como separador de miles. Ejemplo: si debe dos mil novecientos nueve soles escribe 2909 o 2909.00, NUNCA 2.909.
                 4. Entidades reportantes: extrae la lista de todos los bancos/cajas que reportan deudas.
                 
                 Debes responder EXCLUSIVAMENTE en formato JSON valido:
@@ -332,7 +345,7 @@ public class SbsDocumentAiService {
      * Consulta el Microservicio de ML en FastAPI para predicción de riesgo y asignación de límite.
      * Si no está accesible, utiliza el algoritmo equivalente calibrado.
      */
-    private EvaluacionCrediticiaMl calcularScoringMl(User user, double pctNormal, double pctCpp,
+    private EvaluacionCrediticiaMl calcularScoringMl(User user, String semaforo, double pctNormal, double pctCpp,
                                                      double pctDeficiente, double pctDudoso,
                                                      double pctPerdida, double deudaTotal, double diasAtraso) {
         try {
@@ -364,7 +377,18 @@ public class SbsDocumentAiService {
                 String rec = resJson.path("recomendacion").asText("Aprobado para fiar");
 
                 // Si SBS es 100% normal y deuda moderada, bonificamos la línea de confianza
-                if (pctNormal >= 95.0 && limite < 1000.0) {
+                                // REGLAS ESTRICTAS DE COHERENCIA SBS:
+                if (pctPerdida > 0 || pctDudoso > 0 || pctDeficiente > 0 || diasAtraso > 30 || "ROJO".equals(semaforo)) {
+                    score = Math.min(score, 30);
+                    limite = 0.0;
+                    nivel = "Alto";
+                    rec = "Denegar fiado por morosidad crtica en el sistema SBS";
+                } else if (pctCpp > 0 || diasAtraso > 0 || pctNormal < 85.0 || "AMARILLO".equals(semaforo)) {
+                    score = Math.min(score, 60);
+                    limite = Math.min(limite, 250.0);
+                    nivel = "Medio";
+                    rec = "Fiar con lmite controlado y supervisin de pago";
+                } else if (pctNormal >= 95.0 && limite < 1000.0) {
                     limite = Math.max(limite, 1000.0);
                     score = Math.max(score, 92);
                 }
@@ -402,4 +426,5 @@ public class SbsDocumentAiService {
         }
     }
 }
+
 
