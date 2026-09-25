@@ -1,4 +1,4 @@
-package com.ronald.proyecto.proyecto_uni.service;
+﻿package com.ronald.proyecto.proyecto_uni.service;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -232,28 +232,33 @@ public class SbsDocumentAiService {
 
         try {
             String promptSistema = """
-                Eres un analista de riesgo crediticio experto en el sistema financiero peruano (SBS - Superintendencia de Banca, Seguros y AFP).
-                Analiza el Reporte de Deudas / Calificación Financiera SBS proporcionado (sea texto o captura de pantalla) y extrae las métricas exactas.
+                Eres un auditor y analista de riesgos experto de la Superintendencia de Banca y Seguros (SBS) del Peru.
+                Examina con maxima rigurosidad el reporte de deudas / calificacion financiera SBS (sea texto o imagen).
+
+                REGLAS OBLIGATORIAS DE AUDITORIA:
+                1. Revisa CADA fila de la tabla de DEUDAS y observa la columna 'CALIFICACION' para cada entidad reportante:
+                   - Si dice 'Normal' o '0: Normal' -> porcentaje_normal > 0.
+                   - Si dice 'Con Problemas Potenciales' o 'CPP' -> porcentaje_cpp > 0.
+                   - Si dice 'Problemas de Pago' o 'Deficiente' -> porcentaje_deficiente > 0.
+                   - Si dice 'Dudoso' -> porcentaje_dudoso > 0.
+                   - Si dice 'Perdida' -> porcentaje_perdida > 0.
+                2. Si alguna entidad tiene Problemas Potenciales, Problemas de Pago, Deficiente, Dudoso o Perdida, BAJO NINGUNA CIRCUNSTANCIA califiques como '100% NORMAL'. La calificacion debe ser 'CPP / NORMAL', 'PROBLEMAS DE PAGO', 'DEFICIENTE' o 'MIXTA'.
+                3. Deuda total financiera: suma el monto TOTAL de todas las entidades (incluyendo capital e intereses, ej. S/. 2,909.00 o el total que figure en el cuadro/observaciones).
+                4. Entidades reportantes: extrae la lista de todos los bancos/cajas que reportan deudas.
                 
-                Debes responder EXCLUSIVAMENTE en formato JSON con esta estructura exacta:
+                Debes responder EXCLUSIVAMENTE en formato JSON valido:
                 {
-                  "calificacion_resumen": "100% NORMAL",
-                  "porcentaje_normal": 100.0,
-                  "porcentaje_cpp": 0.0,
-                  "porcentaje_deficiente": 0.0,
-                  "porcentaje_dudoso": 0.0,
-                  "porcentaje_perdida": 0.0,
-                  "deuda_total_financiera": 2450.50,
-                  "entidades_reportantes": ["BCP", "INTERBANK"],
-                  "dias_atraso_estimados": 0,
-                  "resumen_ejecutivo": "Cliente con calificación 100% Normal en el sistema financiero, sin días de morosidad y cumplimiento puntual."
+                  "calificacion_resumen": "string (ej: 100% NORMAL, CPP / NORMAL, o MIXTA)",
+                  "porcentaje_normal": number,
+                  "porcentaje_cpp": number,
+                  "porcentaje_deficiente": number,
+                  "porcentaje_dudoso": number,
+                  "porcentaje_perdida": number,
+                  "deuda_total_financiera": number,
+                  "entidades_reportantes": ["entidad1", "entidad2"],
+                  "dias_atraso_estimados": number,
+                  "resumen_ejecutivo": "string con la explicacion detallada de las deudas y problemas encontrados"
                 }
-                
-                Reglas:
-                - Si el cliente tiene 100% Normal y 0 deuda reportada o deuda al día, dias_atraso_estimados es 0.
-                - Si no se listan entidades, devuelve una lista vacía o las que figuren en la tabla de detalle.
-                - Convierte los montos a Soles (número decimal puro, sin S/. ni comas).
-                - Solo responde el JSON, sin markdown extra.
                 """;
 
             List<Map<String, Object>> messages = new ArrayList<>();
@@ -397,3 +402,4 @@ public class SbsDocumentAiService {
         }
     }
 }
+
